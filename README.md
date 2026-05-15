@@ -1,106 +1,102 @@
-# Vocabulary Review / 单词复习
+# 单词复习 (Vocabulary Review)
 
-An English vocabulary memorization tool based on **SM-2 spaced repetition algorithm**. Supports flashcard review, multiple-choice quizzes, Chinese translations, image fetching, and TTS audio. Packaged as a single Windows executable (no Python required).
+[中文](#中文) | [English](#english)
 
-基于 **SM-2 间隔重复算法** 的英语单词记忆工具。支持翻卡复习、选择题测验、中文翻译、图片获取和 TTS 语音。打包为单个 Windows exe 文件，无需 Python 环境。
-
----
-
-## Features / 功能
-
-- **Spaced Repetition (SM-2)** — Smart review scheduling based on your memory performance
-- **Flashcard Review** — Flip cards to recall meanings, rate your memory on a 5-level scale
-- **Multiple-Choice Quiz** — Four-option quiz to test your knowledge
-- **Chinese Translations** — Import JSON with `{"en": "...", "zh": "..."}` format, auto-translate via MyMemory API
-- **Text-to-Speech** — Edge TTS for English pronunciation
-- **Image Search** — Auto-fetch images from Pexels / Unsplash / Picsum
-- **Wrong Answer Collection** — Track and review words you frequently miss
-- **Batch Import** — TXT or JSON file import
-- **Dictionary Lookup** — Auto-fetch phonetic, definition, and example sentences
-- **Single EXE** — One-click start, auto-opens browser
+> 基于 SM-2 间隔重复算法的英语单词记忆工具。支持翻卡复习、选择题测验、中文翻译、TTS 语音朗读和图片搜索。可打包为单个 Windows exe 文件，无需依赖 Python 环境。
+>
+> An English vocabulary memorization tool based on SM-2 spaced repetition. Supports flashcard review, multiple-choice quizzes, Chinese translations, TTS audio playback, and image search. Ships as a single Windows executable — no Python required.
 
 ---
 
-## Quick Start / 快速开始
+## 中文
 
-### Option 1: Download EXE (recommended)
+### 功能特性
 
-Download `VocabularyReview.exe` from Releases, double-click to run. The browser opens automatically at `http://localhost:8004`.
+- **间隔重复（SM-2）** — 根据记忆表现智能安排复习计划
+- **翻卡复习** — 翻转卡片回忆释义，五级评分
+- **选择题测验** — 四选一测试，巩固记忆
+- **中文翻译** — 支持 JSON 格式导入 `{"en": "apple", "zh": "苹果"}`，也可通过 MyMemory API 自动翻译
+- **语音朗读** — 基于 Edge TTS 的英语发音
+- **图片搜索** — 自动从 Pexels / Unsplash / Picsum 获取配图
+- **错题集** — 跟踪并回顾常错的单词
+- **批量导入** — 支持 TXT 和 JSON 格式批量导入
+- **词典查询** — 自动获取音标、释义和例句
+- **单文件运行** — 一键启动，自动打开浏览器
 
-### Option 2: Run from Source
+### 快速开始
 
-**Backend:**
+#### 方式一：下载 EXE（推荐）
+
+下载 `VocabularyReview.exe`，双击运行，浏览器自动打开 `http://localhost:8004`。
+
+#### 方式二：源码运行
+
+**后端：**
+
 ```bash
 cd backend
 pip install -r requirements.txt
 python main.py
 ```
 
-**Frontend (development):**
+**前端（开发模式）：**
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
----
+### 使用说明
 
-## Usage / 使用说明
+1. **导入单词** — 在导入页面上传 TXT 或 JSON 文件
+   - TXT：每行一个单词，可选 `单词,音标` 格式
+   - JSON：`[{"en": "apple", "zh": "苹果"}, ...]`
+2. **复习** — 使用翻卡或测验模式练习
+3. **跟踪** — 首页查看统计，错题集回顾答错的单词
+4. **自定义** — 在 `.env` 中配置 Pexels/Unsplash API 密钥
 
-1. **Import words** — Upload a TXT or JSON file on the import page
-   - TXT: one word per line, optional `word,phonetic` format
-   - JSON: `[{"en": "apple", "zh": "苹果"}, ...]`
-2. **Review** — Use flashcard or quiz mode to practice
-3. **Track** — Check your stats on the home page, review wrong answers
-4. **Customize** — Set Pexels/Unsplash API keys in `.env` for image search
+### 技术栈
 
----
+| 层级 | 技术 |
+|------|------|
+| 后端 | Python 3.10+, FastAPI, SQLAlchemy, SQLite |
+| 前端 | Vue 3 (Composition API), Vite, Pinia, Vue Router |
+| 接口服务 | Free Dictionary API, MyMemory 翻译 API, Edge TTS, Pexels / Unsplash |
+| 打包 | PyInstaller（单文件 EXE） |
 
-## Tech Stack / 技术栈
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Python 3.10+, FastAPI, SQLAlchemy, SQLite |
-| Frontend | Vue 3 (Composition API), Vite, Pinia, Vue Router |
-| APIs | Free Dictionary API, MyMemory Translation API, Edge TTS, Pexels / Unsplash |
-| Packaging | PyInstaller (single-file EXE) |
-
----
-
-## Project Structure / 项目结构
+### 项目结构
 
 ```
 VocabularyReview/
 ├── backend/
-│   ├── main.py              # Entry point
-│   ├── app.py               # FastAPI app + static file serving
-│   ├── config.py            # Paths, API keys
-│   ├── database.py          # SQLAlchemy engine
-│   ├── models.py            # ORM models
-│   ├── schemas.py           # Pydantic schemas
+│   ├── main.py               # 入口文件
+│   ├── app.py                # FastAPI 应用 + 静态文件服务
+│   ├── config.py             # 路径和密钥配置
+│   ├── database.py           # SQLAlchemy 引擎
+│   ├── models.py             # ORM 模型
+│   ├── schemas.py            # Pydantic 数据模型
 │   ├── routes/
-│   │   ├── words.py         # Word CRUD, import, dictionary
-│   │   ├── review.py        # SM-2 review, errors
-│   │   ├── stats.py         # Statistics
-│   │   └── media.py         # Audio & image endpoints
+│   │   ├── words.py          # 单词增删改查、导入、词典
+│   │   ├── review.py         # SM-2 复习、错题
+│   │   ├── stats.py          # 统计
+│   │   └── media.py          # 音频和图片接口
 │   └── services/
-│       ├── dictionary.py    # Free Dictionary API + MyMemory
-│       ├── audio.py         # Edge TTS generation
-│       ├── image.py         # Image search (Pexels/Unsplash/Picsum)
-│       └── spaced_repetition.py  # SM-2 algorithm
+│       ├── dictionary.py     # 词典 API + MyMemory 翻译
+│       ├── audio.py          # Edge TTS 语音生成
+│       ├── image.py          # 图片搜索
+│       └── spaced_repetition.py  # SM-2 算法
 ├── frontend/
 │   └── src/
-│       ├── views/           # Page components
-│       ├── components/      # Reusable components
-│       ├── api/index.js     # Axios API client
-│       └── router/index.js  # Vue Router
-├── dist_exe/                # Built EXE output
+│       ├── views/            # 页面组件
+│       ├── components/       # 可复用组件
+│       ├── api/index.js      # Axios API 客户端
+│       └── router/index.js   # 路由配置
+├── dist_exe/                 # 打包后的 EXE 输出
 └── README.md
 ```
 
----
-
-## Build EXE / 打包
+### 打包为 EXE
 
 ```bash
 cd backend
@@ -116,6 +112,110 @@ pyinstaller --clean --onefile --name "VocabularyReview" --distpath "..\dist_exe"
 
 ---
 
-## License / 许可
+## English
+
+### Features
+
+- **Spaced Repetition (SM-2)** — Smart review scheduling based on your memory performance
+- **Flashcard Review** — Flip cards to recall meanings with a 5-level rating
+- **Multiple-Choice Quiz** — Four-option quiz to reinforce learning
+- **Chinese Translations** — Import via JSON (`{"en": "apple", "zh": "苹果"}`) or auto-translate with MyMemory API
+- **Text-to-Speech** — Edge TTS for English pronunciation
+- **Image Search** — Auto-fetch images from Pexels / Unsplash / Picsum
+- **Wrong Answer Collection** — Track and review frequently missed words
+- **Batch Import** — TXT or JSON file import
+- **Dictionary Lookup** — Auto-fetch phonetic, definition, and example sentences
+- **Single EXE** — One-click start with auto browser launch
+
+### Quick Start
+
+#### Option 1: Download EXE (recommended)
+
+Download `VocabularyReview.exe`, double-click to run. The browser opens automatically at `http://localhost:8004`.
+
+#### Option 2: Run from Source
+
+**Backend:**
+
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
+
+**Frontend (development):**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Usage
+
+1. **Import words** — Upload a TXT or JSON file on the import page
+   - TXT: one word per line, optional `word,phonetic` format
+   - JSON: `[{"en": "apple", "zh": "苹果"}, ...]`
+2. **Review** — Use flashcard or quiz mode to practice
+3. **Track** — Check stats on the home page, review wrong answers
+4. **Customize** — Set Pexels/Unsplash API keys in `.env` for image search
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Python 3.10+, FastAPI, SQLAlchemy, SQLite |
+| Frontend | Vue 3 (Composition API), Vite, Pinia, Vue Router |
+| APIs | Free Dictionary API, MyMemory Translation API, Edge TTS, Pexels / Unsplash |
+| Packaging | PyInstaller (single-file EXE) |
+
+### Project Structure
+
+```
+VocabularyReview/
+├── backend/
+│   ├── main.py               # Entry point
+│   ├── app.py                # FastAPI app + static file serving
+│   ├── config.py             # Paths and API keys
+│   ├── database.py           # SQLAlchemy engine
+│   ├── models.py             # ORM models
+│   ├── schemas.py            # Pydantic schemas
+│   ├── routes/
+│   │   ├── words.py          # Word CRUD, import, dictionary
+│   │   ├── review.py         # SM-2 review, error tracking
+│   │   ├── stats.py          # Statistics
+│   │   └── media.py          # Audio & image endpoints
+│   └── services/
+│       ├── dictionary.py     # Dictionary API + MyMemory translation
+│       ├── audio.py          # Edge TTS generation
+│       ├── image.py          # Image search
+│       └── spaced_repetition.py  # SM-2 algorithm
+├── frontend/
+│   └── src/
+│       ├── views/            # Page components
+│       ├── components/       # Reusable components
+│       ├── api/index.js      # Axios API client
+│       └── router/index.js   # Vue Router config
+├── dist_exe/                 # Built EXE output
+└── README.md
+```
+
+### Build EXE
+
+```bash
+cd backend
+pyinstaller --clean --onefile --name "VocabularyReview" --distpath "..\dist_exe" \
+  --add-data "..\frontend\dist;frontend\dist" \
+  --add-data ".env;." --add-data "audio;audio" --add-data "images;images" \
+  --hidden-import "uvicorn.logging" --hidden-import "uvicorn.loops.auto" \
+  --hidden-import "uvicorn.protocols.http.auto" --hidden-import "uvicorn.protocols.http.h11_impl" \
+  --hidden-import "uvicorn.lifespan.on" --hidden-import "dotenv" \
+  --hidden-import "edge_tts" --hidden-import "sqlalchemy" \
+  --collect-all "uvicorn" --collect-all "edge_tts" "main.py"
+```
+
+---
+
+## License
 
 MIT
