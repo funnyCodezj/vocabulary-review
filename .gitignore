@@ -1,0 +1,16 @@
+backend/.env
+backend/audio/
+backend/images/
+backend/build/
+*.db
+*.spec
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.pyc
+node_modules/
+dist/
+dist_exe/
+test.json
+test_words.txt
+.claude/
