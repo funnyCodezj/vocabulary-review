@@ -54,7 +54,7 @@ npm run dev
 ### 使用说明
 
 1. **导入单词** — 在导入页面上传 TXT 或 JSON 文件
-   - TXT：每行一个单词，可选 `单词,音标` 格式
+   - TXT：每行一个单词，可选 `单词 中文` 格式（空格分隔）
    - JSON：`[{"en": "apple", "zh": "苹果"}, ...]`
 2. **复习** — 使用翻卡或测验模式练习
 3. **跟踪** — 首页查看统计，错题集回顾答错的单词
@@ -162,7 +162,7 @@ npm run dev
 ### Usage
 
 1. **Import words** — Upload a TXT or JSON file on the import page
-   - TXT: one word per line, optional `word,phonetic` format
+   - TXT: one word per line, optional `word 中文` format (space-separated)
    - JSON: `[{"en": "apple", "zh": "苹果"}, ...]`
 2. **Review** — Use flashcard or quiz mode to practice
 3. **Track** — Check stats on the home page, review wrong answers

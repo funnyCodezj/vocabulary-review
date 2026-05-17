@@ -2,11 +2,16 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { importWords, batchFillDict, batchTranslate } from '../api'
+import { useToast } from '../composables/useToast'
 
 const router = useRouter()
+const { show: showToast } = useToast()
+
 const importing = ref(false)
 const result = ref(null)
 const error = ref('')
+const dictLoading = ref(false)
+const translateLoading = ref(false)
 
 async function handleFileUpload(e) {
   const file = e.target.files[0]
@@ -28,20 +33,28 @@ async function handleFileUpload(e) {
 }
 
 async function fillDictionary() {
+  dictLoading.value = true
+  showToast('正在获取词典数据，可以离开当前页面，处理会在后台进行...', 'info')
   try {
     const res = await batchFillDict()
-    alert(`已填充 ${res.data.filled} 个单词，剩余 ${res.data.remaining} 个`)
-  } catch (err) {
-    alert('获取词典数据失败')
+    showToast(`已填充 ${res.data.filled} 个单词，剩余 ${res.data.remaining} 个`, 'success')
+  } catch {
+    showToast('获取词典数据失败', 'error')
+  } finally {
+    dictLoading.value = false
   }
 }
 
 async function handleBatchTranslate() {
+  translateLoading.value = true
+  showToast('正在获取中文翻译，可以离开当前页面，处理会在后台进行...', 'info')
   try {
     const res = await batchTranslate()
-    alert(`已翻译 ${res.data.translated} 个单词，剩余 ${res.data.remaining} 个`)
-  } catch (err) {
-    alert('翻译失败')
+    showToast(`已翻译 ${res.data.translated} 个单词，剩余 ${res.data.remaining} 个`, 'success')
+  } catch {
+    showToast('获取中文翻译失败', 'error')
+  } finally {
+    translateLoading.value = false
   }
 }
 </script>
@@ -67,7 +80,7 @@ async function handleBatchTranslate() {
             选择 TXT / JSON 文件
           </span>
         </label>
-        <p class="text-sm text-secondary mt-2">TXT: 每行一个单词，可选格式: 单词,音标。JSON: 数组格式 {"en": "单词", "zh": "中文"}</p>
+        <p class="text-sm text-secondary mt-2">TXT: 每行一个单词，可选格式: 单词 中文。JSON: 数组格式 {"en": "单词", "zh": "中文"}</p>
       </div>
 
       <div v-if="result" class="result-box">
@@ -76,8 +89,20 @@ async function handleBatchTranslate() {
         <p v-if="result.updated > 0" class="text-sm text-success">{{ result.updated }} 个已有单词更新了中文翻译</p>
         <p v-if="result.skipped > 0" class="text-sm text-secondary">{{ result.skipped }} 个重复已跳过</p>
         <div class="result-actions">
-          <button class="btn btn-outline" @click="fillDictionary">批量获取词典数据</button>
-          <button class="btn btn-outline" @click="handleBatchTranslate">批量获取中文翻译</button>
+          <button
+            class="btn btn-outline"
+            :disabled="dictLoading"
+            @click="fillDictionary"
+          >
+            {{ dictLoading ? '获取中...' : '批量获取词典数据' }}
+          </button>
+          <button
+            class="btn btn-outline"
+            :disabled="translateLoading"
+            @click="handleBatchTranslate"
+          >
+            {{ translateLoading ? '获取中...' : '批量获取中文翻译' }}
+          </button>
           <button class="btn btn-primary" @click="router.push('/words')">查看单词</button>
         </div>
       </div>
@@ -87,10 +112,10 @@ async function handleBatchTranslate() {
 
     <div class="card tips-card">
       <h3>格式说明</h3>
-      <p class="text-sm font-bold">TXT 格式（每行一个单词）</p>
+      <p class="text-sm font-bold">TXT 格式（每行一个单词，单词 中文）</p>
       <pre class="example">
-apple
-banana,ˈbæn.ə.nə
+apple 苹果
+banana 香蕉
 cherry</pre>
       <p class="text-sm font-bold mt-2">JSON 格式（含中文翻译）</p>
       <pre class="example">[
@@ -185,6 +210,11 @@ cherry</pre>
   gap: 8px;
   justify-content: center;
   margin-top: 12px;
+}
+
+.result-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .error-msg {

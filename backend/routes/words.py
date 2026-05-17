@@ -151,10 +151,10 @@ def import_words(file: UploadFile = File(...), db: Session = Depends(get_db)):
             db.add(db_word)
             imported += 1
     else:
-        # TXT format: one word per line, or "word,phonetic"
+        # TXT format: one word per line, or "word 中文"
         lines = [line.strip() for line in content.splitlines() if line.strip()]
         for line in lines:
-            parts = line.split(",")
+            parts = line.split(maxsplit=1)
             word_text = parts[0].strip().lower()
             if not word_text:
                 continue
@@ -164,7 +164,7 @@ def import_words(file: UploadFile = File(...), db: Session = Depends(get_db)):
                 continue
             db_word = Word(word=word_text)
             if len(parts) > 1:
-                db_word.phonetic = parts[1].strip()
+                db_word.chinese = parts[1].strip()
             db.add(db_word)
             imported += 1
     db.commit()
