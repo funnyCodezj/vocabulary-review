@@ -45,6 +45,13 @@ pyinstaller --clean --onefile --name "VocabularyReview" --distpath "..\dist_exe"
 - Normal: `CODE_DIR = os.path.dirname(__file__)`
 - DB + media stored next to EXE for persistence
 
+## API Notes
+
+- `GET /api/words` accepts `stage_filter` param: all, new, due, learning, reviewing, mastered, errors
+- `POST /api/review/next` accepts `stage_filter` param (same values)
+- `GET /api/stats` returns `errors_count`, `due_count` and per-stage counts
+- Review/Quiz flash views use mode selection screen before starting
+
 ## Common Tasks
 
 - Add API endpoint: route in `backend/routes/`, schema in `schemas.py`, import in `app.py`

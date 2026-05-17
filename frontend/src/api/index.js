@@ -55,9 +55,13 @@ export function fetchImage(id) {
   return api.post(`/media/image/${id}`)
 }
 
+export function clearImage(id) {
+  return api.post(`/words/${id}/clear-image`)
+}
+
 // Review
-export function getNextReview() {
-  return api.post('/review/next')
+export function getNextReview(stageFilter = 'due') {
+  return api.post('/review/next', null, { params: { stage_filter: stageFilter } })
 }
 
 export function submitReview(data) {

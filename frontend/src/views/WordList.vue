@@ -1,21 +1,40 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { listWords, clearAllWords } from '../api'
 import WordCard from '../components/WordCard.vue'
 
+const route = useRoute()
+const router = useRouter()
 const words = ref([])
 const total = ref(0)
 const page = ref(1)
 const search = ref('')
 const loading = ref(false)
 const clearing = ref(false)
-const sortBy = ref('word')
-const sortOrder = ref('asc')
+const stageFilter = ref(route.query.filter || 'all')
 
 const showClearConfirm = ref(false)
 const clearConfirmText = ref('')
 
 const pageSize = 50
+
+const filterOptions = [
+  { value: 'all', label: '全部单词' },
+  { value: 'new', label: '新词' },
+  { value: 'due', label: '待复习' },
+  { value: 'learning', label: '学习中' },
+  { value: 'reviewing', label: '复习中' },
+  { value: 'mastered', label: '已掌握' },
+  { value: 'errors', label: '错题' },
+]
+
+function setFilter(value) {
+  stageFilter.value = value
+  page.value = 1
+  router.replace({ query: { filter: value === 'all' ? undefined : value } })
+  fetchWords()
+}
 
 async function fetchWords() {
   loading.value = true
@@ -24,8 +43,7 @@ async function fetchWords() {
       page: page.value,
       page_size: pageSize,
       search: search.value || undefined,
-      sort_by: sortBy.value,
-      sort_order: sortOrder.value,
+      stage_filter: stageFilter.value,
     })
     words.value = res.data.items
     total.value = res.data.total
@@ -69,17 +87,6 @@ watch(search, () => {
 })
 
 const totalPages = () => Math.ceil(total.value / pageSize)
-
-function setSort(by) {
-  if (sortBy.value === by) {
-    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    sortBy.value = by
-    sortOrder.value = by === 'word' ? 'asc' : 'desc'
-  }
-  page.value = 1
-  fetchWords()
-}
 </script>
 
 <template>
@@ -107,21 +114,15 @@ function setSort(by) {
       />
     </div>
 
-    <div class="sort-bar">
-      <span class="sort-label">排序：</span>
+    <div class="filter-bar">
       <button
-        class="sort-btn"
-        :class="{ active: sortBy === 'word' }"
-        @click="setSort('word')"
+        v-for="opt in filterOptions"
+        :key="opt.value"
+        class="filter-chip"
+        :class="{ active: stageFilter === opt.value }"
+        @click="setFilter(opt.value)"
       >
-        字母 {{ sortBy === 'word' ? (sortOrder === 'asc' ? '↑' : '↓') : '' }}
-      </button>
-      <button
-        class="sort-btn"
-        :class="{ active: sortBy === 'stage' }"
-        @click="setSort('stage')"
-      >
-        熟练度 {{ sortBy === 'stage' ? (sortOrder === 'asc' ? '↑' : '↓') : '' }}
+        {{ opt.label }}
       </button>
     </div>
 
@@ -135,9 +136,10 @@ function setSort(by) {
 
     <div v-else class="word-grid">
       <WordCard
-        v-for="w in words"
+        v-for="(w, idx) in words"
         :key="w.id"
         :word="w"
+        :style="{ animationDelay: (idx * 0.05) + 's' }"
         @deleted="onWordDeleted"
       />
     </div>
@@ -241,35 +243,31 @@ function setSort(by) {
   padding: 10px 14px;
 }
 
-.sort-bar {
+.filter-bar {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
-.sort-label {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.sort-btn {
-  padding: 5px 12px;
+.filter-chip {
+  padding: 6px 16px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 20px;
   background: var(--bg-card);
   cursor: pointer;
   font-size: 13px;
   color: var(--text-secondary);
   transition: all 0.2s;
+  font-family: inherit;
 }
 
-.sort-btn:hover {
+.filter-chip:hover {
   border-color: var(--primary-light);
   color: var(--text);
 }
 
-.sort-btn.active {
+.filter-chip.active {
   border-color: var(--primary);
   background: rgba(79, 70, 229, 0.06);
   color: var(--primary);

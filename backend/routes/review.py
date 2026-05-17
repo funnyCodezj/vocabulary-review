@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 
@@ -11,17 +11,36 @@ router = APIRouter(prefix="/api/review", tags=["review"])
 
 
 @router.post("/next", response_model=ReviewNextResponse)
-def next_word(db: Session = Depends(get_db)):
-    """Get the next word due for review (SM-2 based)."""
+def next_word(
+    stage_filter: str = Query("due", description="due, all, new, learning, reviewing, mastered"),
+    db: Session = Depends(get_db)
+):
+    """Get the next word for review, optionally filtered by stage."""
     today = date.today()
-    # priority: words never reviewed, then words past their next_review_date
-    word = (
-        db.query(Word)
-        .outerjoin(UserProgress)
-        .filter(
+    query = db.query(Word).outerjoin(UserProgress)
+
+    if stage_filter == "new":
+        query = query.filter(
+            (UserProgress.id == None) |  # noqa: never reviewed
+            (UserProgress.stage == 0)
+        )
+    elif stage_filter == "learning":
+        query = query.filter(UserProgress.stage == 1)
+    elif stage_filter == "reviewing":
+        query = query.filter(UserProgress.stage.in_([2, 3]))
+    elif stage_filter == "mastered":
+        query = query.filter(UserProgress.stage.in_([4, 5]))
+    elif stage_filter == "all":
+        pass  # no filter, show all words
+    else:
+        # "due" — default SM-2 behaviour
+        query = query.filter(
             (UserProgress.id == None) |  # noqa: never reviewed
             (UserProgress.next_review_date <= today)
         )
+
+    word = (
+        query
         .order_by(UserProgress.next_review_date.asc().nullsfirst())
         .first()
     )

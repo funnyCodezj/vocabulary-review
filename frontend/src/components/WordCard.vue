@@ -50,7 +50,7 @@ async function handleDelete(e) {
         </span>
       </div>
       <p class="phonetic">{{ word.phonetic || word.word }}</p>
-      <p class="definition">{{ word.definition ? word.definition.slice(0, 60) + (word.definition.length > 60 ? '...' : '') : '加载中...' }}</p>
+      <p class="definition">{{ word.definition ? word.definition.slice(0, 60) + (word.definition.length > 60 ? '...' : '') : '' }}</p>
       <p v-if="word.chinese" class="chinese">{{ word.chinese }}</p>
       <div class="card-footer">
         <AudioButton :word="word.word" />
@@ -69,14 +69,26 @@ async function handleDelete(e) {
   border: 1px solid var(--border);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow);
   position: relative;
+  animation: cardEnter 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .word-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 20px -8px rgba(0,0,0,0.12), 0 4px 8px -2px rgba(0,0,0,0.06);
   border-color: var(--primary-light);
 }
 

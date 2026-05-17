@@ -20,6 +20,7 @@ class Word(Base):
     image_source = Column(String(50), default="")
     audio_path = Column(String(300), default="")
     chinese = Column(String(500), default="")
+    meanings = Column(Text, default="")  # JSON: [{pos, definition, example, example_cn}]
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 

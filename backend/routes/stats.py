@@ -26,7 +26,16 @@ def get_stats(db: Session = Depends(get_db)):
         UserProgress.stage.in_([4, 5])
     ).count()
 
+    errors_count = db.query(UserProgress).filter(
+        UserProgress.incorrect_count > 0
+    ).count()
+
     today = date.today()
+    due_count = db.query(Word).outerjoin(UserProgress).filter(
+        (UserProgress.id == None) |
+        (UserProgress.next_review_date <= today)
+    ).count()
+
     session = db.query(ReviewSession).filter(
         ReviewSession.date == today
     ).first()
@@ -43,8 +52,10 @@ def get_stats(db: Session = Depends(get_db)):
         stage_1_learning=stage_1,
         stage_2_3_reviewing=stage_2_3,
         stage_4_5_known=stage_4_5,
+        errors_count=errors_count,
         today_reviewed=today_reviewed,
         today_correct=today_correct,
         today_accuracy=round(today_accuracy, 1),
         total_reviewed_all=total_reviewed,
+        due_count=due_count,
     )

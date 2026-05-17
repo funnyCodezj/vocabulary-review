@@ -1,12 +1,13 @@
-import asyncio, os
+import asyncio, os, json
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
+from datetime import date
 
 from database import get_db
 from models import Word, UserProgress
-from schemas import WordOut, WordDetail, WordListResponse
-from services.dictionary import fetch_word_data, fetch_chinese_translation
+from schemas import WordOut, WordDetail, WordListResponse, MeaningItem
+from services.dictionary import fetch_word_data, fetch_chinese_translation, translate_examples
 from config import IMAGE_DIR
 
 router = APIRouter(prefix="/api/words", tags=["words"])
@@ -17,37 +18,43 @@ def list_words(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     search: Optional[str] = None,
-    stage: Optional[int] = None,
-    sort_by: str = "word",
-    sort_order: str = "asc",
+    stage_filter: str = Query("all", description="all, new, due, learning, reviewing, mastered, errors"),
     db: Session = Depends(get_db),
 ):
     query = db.query(Word)
     if search:
         query = query.filter(Word.word.ilike(f"%{search}%"))
 
-    # join progress if needed for filter or sort
-    if stage is not None or sort_by == "stage":
-        query = query.outerjoin(Word.progress)
+    query = query.outerjoin(Word.progress)
 
-    if stage is not None:
-        query = query.filter(UserProgress.stage == stage)
+    today = date.today()
+    if stage_filter == "new":
+        query = query.filter(
+            (UserProgress.id == None) | (UserProgress.stage == 0)
+        )
+    elif stage_filter == "due":
+        query = query.filter(
+            (UserProgress.id == None) |
+            (UserProgress.next_review_date <= today)
+        )
+    elif stage_filter == "learning":
+        query = query.filter(UserProgress.stage == 1)
+    elif stage_filter == "reviewing":
+        query = query.filter(UserProgress.stage.in_([2, 3]))
+    elif stage_filter == "mastered":
+        query = query.filter(UserProgress.stage.in_([4, 5]))
+    elif stage_filter == "errors":
+        query = query.filter(
+            (UserProgress.incorrect_count > 0) & (UserProgress.id != None)
+        )
+    # "all" — no filter
 
     total = query.count()
 
-    # apply sorting
-    if sort_by == "stage":
-        col = UserProgress.stage
-        items = (
-            query.order_by(col.asc().nullsfirst() if sort_order == "asc" else col.desc().nullslast())
-            .offset((page - 1) * page_size).limit(page_size).all()
-        )
-    else:
-        col = Word.word
-        items = (
-            query.order_by(col.asc() if sort_order == "asc" else col.desc())
-            .offset((page - 1) * page_size).limit(page_size).all()
-        )
+    items = (
+        query.order_by(Word.word.asc())
+        .offset((page - 1) * page_size).limit(page_size).all()
+    )
 
     return WordListResponse(
         items=[_word_to_out(w) for w in items],
@@ -93,6 +100,21 @@ def delete_word(word_id: int, db: Session = Depends(get_db)):
     if os.path.exists(img_path):
         os.remove(img_path)
     db.delete(word)
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/{word_id}/clear-image")
+def clear_word_image(word_id: int, db: Session = Depends(get_db)):
+    """Delete the local image and reset image_url to placeholder."""
+    word = db.query(Word).filter(Word.id == word_id).first()
+    if not word:
+        raise HTTPException(404, "Word not found")
+    img_path = os.path.join(IMAGE_DIR, f"{word_id}.jpg")
+    if os.path.exists(img_path):
+        os.remove(img_path)
+    word.image_url = ""
+    word.image_source = ""
     db.commit()
     return {"ok": True}
 
@@ -151,7 +173,7 @@ def import_words(file: UploadFile = File(...), db: Session = Depends(get_db)):
 
 @router.post("/{word_id}/dict")
 def fetch_dictionary_data(word_id: int, db: Session = Depends(get_db)):
-    """Fetch dictionary data (phonetic, definition, example) for a word."""
+    """Fetch dictionary data with all parts of speech, definitions, and examples."""
     word = db.query(Word).filter(Word.id == word_id).first()
     if not word:
         raise HTTPException(404, "Word not found")
@@ -161,21 +183,33 @@ def fetch_dictionary_data(word_id: int, db: Session = Depends(get_db)):
         raise HTTPException(404, f"No dictionary data found for '{word.word}'")
 
     word.phonetic = data.get("phonetic", "")
-    meanings = data.get("meanings", [])
-    if meanings:
-        m = meanings[0]
-        word.part_of_speech = m.get("partOfSpeech", "")
-        defs = m.get("definitions", [])
-        if defs:
-            word.definition = defs[0].get("definition", "")
-            word.example = defs[0].get("example", "")
+    raw_meanings = data.get("meanings", [])
+
+    # translate examples to Chinese
+    raw_meanings = asyncio.run(translate_examples(raw_meanings))
+
+    # store all meanings as JSON
+    meaning_list = []
+    for m in raw_meanings:
+        meaning_list.append({
+            "pos": m.get("partOfSpeech", ""),
+            "definition": m.get("definition", ""),
+            "example": m.get("example", ""),
+            "example_cn": m.get("chinese", ""),
+        })
+    word.meanings = json.dumps(meaning_list, ensure_ascii=False)
+
+    # keep first meaning in legacy fields for backward compat
+    if meaning_list:
+        word.part_of_speech = meaning_list[0]["pos"]
+        word.definition = meaning_list[0]["definition"]
+        word.example = meaning_list[0]["example"]
 
     if not word.chinese:
         word.chinese = asyncio.run(fetch_chinese_translation(word.word))
 
     db.commit()
-    return {"ok": True, "word": word.word, "phonetic": word.phonetic,
-            "definition": word.definition, "chinese": word.chinese}
+    return {"ok": True, "word": word.word, "meanings_count": len(meaning_list)}
 
 
 @router.post("/batch-translate")
@@ -206,14 +240,21 @@ def batch_fill_dictionary(db: Session = Depends(get_db)):
             data = asyncio.run(fetch_word_data(word.word))
             if data:
                 word.phonetic = data.get("phonetic", "")
-                meanings = data.get("meanings", [])
-                if meanings:
-                    m = meanings[0]
-                    word.part_of_speech = m.get("partOfSpeech", "")
-                    defs = m.get("definitions", [])
-                    if defs:
-                        word.definition = defs[0].get("definition", "")
-                        word.example = defs[0].get("example", "")
+                raw_meanings = data.get("meanings", [])
+                raw_meanings = asyncio.run(translate_examples(raw_meanings))
+                meaning_list = []
+                for m in raw_meanings:
+                    meaning_list.append({
+                        "pos": m.get("partOfSpeech", ""),
+                        "definition": m.get("definition", ""),
+                        "example": m.get("example", ""),
+                        "example_cn": m.get("chinese", ""),
+                    })
+                word.meanings = json.dumps(meaning_list, ensure_ascii=False)
+                if meaning_list:
+                    word.part_of_speech = meaning_list[0]["pos"]
+                    word.definition = meaning_list[0]["definition"]
+                    word.example = meaning_list[0]["example"]
                 if not word.chinese:
                     word.chinese = asyncio.run(fetch_chinese_translation(word.word))
                 filled += 1
@@ -221,6 +262,15 @@ def batch_fill_dictionary(db: Session = Depends(get_db)):
             continue
     db.commit()
     return {"filled": filled, "remaining": db.query(Word).filter(Word.definition == "").count()}
+
+
+def _parse_meanings(word: Word) -> list:
+    if not word.meanings:
+        return []
+    try:
+        return json.loads(word.meanings)
+    except (json.JSONDecodeError, TypeError):
+        return []
 
 
 def _word_to_out(word: Word) -> WordOut:
@@ -237,6 +287,7 @@ def _word_to_out(word: Word) -> WordOut:
         image_url=word.image_url,
         image_source=word.image_source,
         audio_path=word.audio_path,
+        meanings=[MeaningItem(**m) for m in _parse_meanings(word)],
         stage=stage,
         next_review_date=next_review,
         created_at=word.created_at,
@@ -256,6 +307,7 @@ def _word_to_detail(word: Word) -> WordDetail:
         image_url=word.image_url,
         image_source=word.image_source,
         audio_path=word.audio_path,
+        meanings=[MeaningItem(**m) for m in _parse_meanings(word)],
         stage=p.stage if p else 0,
         repetition=p.repetition if p else 0,
         ease_factor=p.ease_factor if p else 2.5,

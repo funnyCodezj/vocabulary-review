@@ -56,7 +56,17 @@ button {
   border: none;
   border-radius: var(--radius);
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
 }
 
 .btn-primary {

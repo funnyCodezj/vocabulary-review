@@ -74,6 +74,12 @@ const nav = [
   justify-content: center;
   font-weight: 800;
   font-size: 16px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s ease;
+}
+
+.logo:hover .logo-icon {
+  transform: scale(1.1) rotate(-5deg);
+  border-radius: 10px;
 }
 
 .logo-text {
@@ -97,7 +103,22 @@ const nav = [
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-50%);
+  opacity: 0;
 }
 
 .nav-link:hover {
@@ -109,6 +130,16 @@ const nav = [
 .nav-link.active {
   color: var(--primary);
   background: rgba(79, 70, 229, 0.08);
+}
+
+.nav-link.active::after {
+  width: 60%;
+  opacity: 1;
+}
+
+.nav-link:hover::after {
+  width: 30%;
+  opacity: 0.5;
 }
 
 .nav-icon {

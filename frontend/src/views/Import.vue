@@ -124,6 +124,17 @@ cherry</pre>
 .upload-card {
   padding: 32px;
   text-align: center;
+  animation: importCardIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.tips-card {
+  animation: importCardIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: 0.1s;
+}
+
+@keyframes importCardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .upload-zone {

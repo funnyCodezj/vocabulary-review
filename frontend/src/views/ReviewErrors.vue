@@ -89,6 +89,24 @@ onMounted(async () => {
 }
 
 .error-card {
+  animation: errorCardIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.error-card:nth-child(1) { animation-delay: 0s; }
+.error-card:nth-child(2) { animation-delay: 0.04s; }
+.error-card:nth-child(3) { animation-delay: 0.08s; }
+.error-card:nth-child(4) { animation-delay: 0.12s; }
+.error-card:nth-child(5) { animation-delay: 0.16s; }
+.error-card:nth-child(6) { animation-delay: 0.2s; }
+.error-card:nth-child(7) { animation-delay: 0.24s; }
+.error-card:nth-child(8) { animation-delay: 0.28s; }
+
+@keyframes errorCardIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.error-card {
   display: flex;
   align-items: center;
   justify-content: space-between;

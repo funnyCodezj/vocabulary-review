@@ -53,6 +53,14 @@ try:
 except Exception:
     pass  # column already exists
 
+# Migration: add meanings column
+try:
+    with engine.connect() as conn:
+        conn.execute(sa_text("ALTER TABLE words ADD COLUMN meanings TEXT DEFAULT ''"))
+        conn.commit()
+except Exception:
+    pass
+
 app = FastAPI(title="Vocabulary Review API", version="1.0.0")
 
 app.add_middleware(

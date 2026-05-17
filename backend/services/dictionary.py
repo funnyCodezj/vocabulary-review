@@ -1,5 +1,5 @@
-import httpx
-from typing import Optional, Dict
+import json, httpx
+from typing import Optional, Dict, List
 
 from config import DICTIONARY_API_BASE
 
@@ -7,18 +7,18 @@ from config import DICTIONARY_API_BASE
 MYMEMORY_API = "https://api.mymemory.translated.net/get"
 
 
-async def fetch_chinese_translation(word: str) -> str:
+async def fetch_chinese_translation(text: str) -> str:
     """Fetch Chinese translation via MyMemory API (free, no key needed)."""
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(
                 MYMEMORY_API,
-                params={"q": word, "langpair": "en|zh-CN"},
+                params={"q": text, "langpair": "en|zh-CN"},
             )
             if resp.status_code == 200:
                 data = resp.json()
                 translated = data.get("responseData", {}).get("translatedText", "")
-                if translated and translated.lower() != word.lower():
+                if translated and translated.lower() != text.lower():
                     return translated
     except Exception:
         pass
@@ -27,7 +27,7 @@ async def fetch_chinese_translation(word: str) -> str:
 
 async def fetch_word_data(word: str) -> Optional[Dict]:
     """Fetch word data from Free Dictionary API.
-    Returns parsed data or None if not found.
+    Returns parsed data with all meanings or None if not found.
     """
     url = f"{DICTIONARY_API_BASE}/{word}"
     async with httpx.AsyncClient(timeout=10) as client:
@@ -55,17 +55,26 @@ async def fetch_word_data(word: str) -> Optional[Dict]:
             if not result["phonetic"]:
                 result["phonetic"] = entry.get("phonetic", "")
 
-        # extract meanings
+        # extract all meanings across all parts of speech
         for m in entry.get("meanings", []):
-            meaning = {
-                "partOfSpeech": m.get("partOfSpeech", ""),
-                "definitions": [],
-            }
-            for d in m.get("definitions", [])[:2]:  # max 2 definitions per POS
-                meaning["definitions"].append({
+            pos = m.get("partOfSpeech", "")
+            for d in m.get("definitions", [])[:2]:  # max 2 per POS
+                meaning = {
+                    "partOfSpeech": pos,
                     "definition": d.get("definition", ""),
                     "example": d.get("example", ""),
-                })
-            result["meanings"].append(meaning)
+                    "chinese": "",
+                }
+                result["meanings"].append(meaning)
 
         return result
+
+
+async def translate_examples(meanings: List[Dict]) -> List[Dict]:
+    """Translate the example sentences of each meaning to Chinese."""
+    for m in meanings:
+        if m.get("example") and not m.get("chinese"):
+            cn = await fetch_chinese_translation(m["example"])
+            if cn:
+                m["chinese"] = cn
+    return meanings

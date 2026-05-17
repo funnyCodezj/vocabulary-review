@@ -19,6 +19,10 @@
 - **语音朗读** — 基于 Edge TTS 的英语发音
 - **图片搜索** — 自动从 Pexels / Unsplash / Picsum 获取配图
 - **错题集** — 跟踪并回顾常错的单词
+- **阶段筛选** — 单词列表按新词/待复习/学习中/复习中/已掌握/错题筛选
+- **范围选择** — 翻卡复习和测验前可选择范围（全部/新词/待复习/学习中/复习中/已掌握/错题）
+- **快捷键支持** — 翻卡复习支持空格键翻面与快速评分
+- **统计导航** — 首页统计卡片点击直达对应筛选列表
 - **批量导入** — 支持 TXT 和 JSON 格式批量导入
 - **词典查询** — 自动获取音标、释义和例句
 - **单文件运行** — 一键启动，自动打开浏览器
@@ -123,6 +127,10 @@ pyinstaller --clean --onefile --name "VocabularyReview" --distpath "..\dist_exe"
 - **Text-to-Speech** — Edge TTS for English pronunciation
 - **Image Search** — Auto-fetch images from Pexels / Unsplash / Picsum
 - **Wrong Answer Collection** — Track and review frequently missed words
+- **Stage Filter** — Filter word list by new/due/learning/reviewing/mastered/errors
+- **Mode Selection** — Choose review scope before starting flashcard or quiz mode
+- **Keyboard Shortcuts** — Space key to flip and rate in flashcard mode
+- **Stats Navigation** — Click stat cards on home page to jump to filtered word list
 - **Batch Import** — TXT or JSON file import
 - **Dictionary Lookup** — Auto-fetch phonetic, definition, and example sentences
 - **Single EXE** — One-click start with auto browser launch

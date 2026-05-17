@@ -1,6 +1,13 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import date, datetime
+
+
+class MeaningItem(BaseModel):
+    pos: str = ""
+    definition: str = ""
+    example: str = ""
+    example_cn: str = ""
 
 
 class WordCreate(BaseModel):
@@ -18,6 +25,7 @@ class WordOut(BaseModel):
     image_url: str
     image_source: str
     audio_path: str
+    meanings: List[MeaningItem] = []
     stage: int = 0
     next_review_date: Optional[date] = None
     created_at: datetime
@@ -37,6 +45,7 @@ class WordDetail(BaseModel):
     image_url: str
     image_source: str
     audio_path: str
+    meanings: List[MeaningItem] = []
     stage: int
     repetition: int
     ease_factor: float
@@ -74,6 +83,8 @@ class StatsResponse(BaseModel):
     stage_1_learning: int
     stage_2_3_reviewing: int
     stage_4_5_known: int
+    errors_count: int = 0
+    due_count: int = 0
     today_reviewed: int
     today_correct: int
     today_accuracy: float
