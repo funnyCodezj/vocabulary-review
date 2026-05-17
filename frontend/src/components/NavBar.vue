@@ -1,15 +1,16 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { LayoutDashboard, BookOpen, RotateCw, ClipboardList, AlertTriangle, Download } from 'lucide-vue-next'
 
 const router = useRouter()
 
 const nav = [
-  { name: '首页', path: '/', icon: '📊' },
-  { name: '单词', path: '/words', icon: '📚' },
-  { name: '复习', path: '/review/flash', icon: '🔄' },
-  { name: '测验', path: '/review/quiz', icon: '✍️' },
-  { name: '错题', path: '/review/errors', icon: '❌' },
-  { name: '导入', path: '/import', icon: '📥' },
+  { name: '首页', path: '/', icon: LayoutDashboard },
+  { name: '单词', path: '/words', icon: BookOpen },
+  { name: '复习', path: '/review/flash', icon: RotateCw },
+  { name: '测验', path: '/review/quiz', icon: ClipboardList },
+  { name: '错题', path: '/review/errors', icon: AlertTriangle },
+  { name: '导入/导出', path: '/import', icon: Download },
 ]
 </script>
 
@@ -28,7 +29,7 @@ const nav = [
           class="nav-link"
           active-class="active"
         >
-          <span class="nav-icon">{{ item.icon }}</span>
+          <component :is="item.icon" class="nav-icon" :size="18" stroke-width="1.5" />
           <span class="nav-label">{{ item.name }}</span>
         </router-link>
       </nav>
@@ -74,12 +75,12 @@ const nav = [
   justify-content: center;
   font-weight: 800;
   font-size: 16px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s ease;
 }
 
 .logo:hover .logo-icon {
   transform: scale(1.1) rotate(-5deg);
   border-radius: 10px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s ease;
 }
 
 .logo-text {
@@ -143,7 +144,7 @@ const nav = [
 }
 
 .nav-icon {
-  font-size: 16px;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {

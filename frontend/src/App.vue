@@ -23,10 +23,10 @@ main {
 }
 
 .page-enter-active {
-  animation: pageIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: pageIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .page-leave-active {
-  animation: pageOut 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: pageOut 0.2s cubic-bezier(0.4, 0, 1, 1);
 }
 
 @keyframes pageIn {

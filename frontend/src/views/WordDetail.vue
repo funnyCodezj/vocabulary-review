@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWord, deleteWord, fetchWordDict, generateAudio, fetchImage, clearImage, clearErrorWord } from '../api'
+import { ArrowLeft, Trash2 } from 'lucide-vue-next'
 import AudioButton from '../components/AudioButton.vue'
 import ImageWithFallback from '../components/ImageWithFallback.vue'
 
@@ -119,7 +120,8 @@ onMounted(loadWord)
   <div v-else-if="word" class="detail-page">
     <div class="detail-top-bar">
       <button class="btn btn-outline" @click="router.push(isFromErrors ? '/review/errors' : '/words')">
-        ← 返回
+        <ArrowLeft :size="16" stroke-width="1.5" />
+        返回
       </button>
       <button class="btn btn-outline" :class="isFromErrors ? 'btn-clear' : 'btn-delete'" @click="handleDelete">
         {{ isFromErrors ? '清除错题记录' : '删除单词' }}
@@ -132,7 +134,7 @@ onMounted(loadWord)
           <ImageWithFallback :src="word.image_url" :word="word.word" />
           <div v-if="word.image_url && hoverImage" class="image-overlay">
             <button class="img-delete-btn" @click="handleClearImage" :disabled="deletingImage">
-              🗑️
+              <Trash2 :size="20" stroke-width="1.5" />
             </button>
           </div>
         </div>
@@ -269,15 +271,15 @@ onMounted(loadWord)
   animation: detailFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-@keyframes detailFadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 .image-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+@keyframes detailFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .image-actions {

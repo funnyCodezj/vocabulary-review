@@ -1,19 +1,18 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { RotateCw, ClipboardList, BookOpen, AlertTriangle, BookHeart } from 'lucide-vue-next'
 import { getStats } from '../api'
 
 const router = useRouter()
 const stats = ref(null)
 const loading = ref(true)
-const animated = ref(false)
 
 onMounted(async () => {
   try {
     const res = await getStats()
     stats.value = res.data
-    setTimeout(() => { animated.value = true }, 100)
-  } catch (e) {
+  } catch {
     // server might not be running
   } finally {
     loading.value = false
@@ -30,28 +29,28 @@ onMounted(async () => {
 
     <section class="quick-actions">
       <div class="action-card" @click="router.push('/review/flash')">
-        <span class="action-icon">🔄</span>
+        <RotateCw class="action-icon" :size="28" stroke-width="1.5" />
         <div>
           <h3>翻卡复习</h3>
           <p>翻转卡片回忆释义</p>
         </div>
       </div>
       <div class="action-card" @click="router.push('/review/quiz')">
-        <span class="action-icon">✍️</span>
+        <ClipboardList class="action-icon" :size="28" stroke-width="1.5" />
         <div>
           <h3>测验</h3>
           <p>四选一选中文</p>
         </div>
       </div>
       <div class="action-card" @click="router.push('/words')">
-        <span class="action-icon">📚</span>
+        <BookOpen class="action-icon" :size="28" stroke-width="1.5" />
         <div>
           <h3>单词列表</h3>
           <p>浏览所有单词</p>
         </div>
       </div>
       <div class="action-card" @click="router.push('/review/errors')">
-        <span class="action-icon">❌</span>
+        <AlertTriangle class="action-icon" :size="28" stroke-width="1.5" />
         <div>
           <h3>错题集</h3>
           <p>回顾答错的单词</p>
@@ -103,7 +102,7 @@ onMounted(async () => {
             <span class="today-value">{{ stats.today_correct }}</span>
             <span class="today-label">正确</span>
             <div class="tooltip-box">
-            <p>今日翻卡复习中自评「有点难」及以上、测验中选对答案，都算正确。</p>
+              <p>今日翻卡复习中自评「有点难」及以上、测验中选对答案，都算正确。</p>
             </div>
           </div>
           <div class="today-stat stagger-in tooltip-trigger" style="--i:6">
@@ -121,7 +120,7 @@ onMounted(async () => {
 
     <section v-else class="empty-section">
       <div class="empty-state">
-        <p class="empty-icon">📖</p>
+        <BookHeart class="empty-icon" :size="48" stroke-width="1" />
         <h3>开始学习</h3>
         <p class="text-secondary">导入你的单词列表开始复习</p>
         <button class="btn btn-primary mt-4" @click="router.push('/import')">
@@ -148,6 +147,7 @@ onMounted(async () => {
   font-weight: 800;
   color: var(--text);
   margin: 0;
+  letter-spacing: -0.02em;
   animation: heroTextIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
@@ -218,7 +218,8 @@ onMounted(async () => {
 }
 
 .action-icon {
-  font-size: 28px;
+  flex-shrink: 0;
+  color: var(--primary);
 }
 
 .stats-section {
@@ -285,6 +286,7 @@ onMounted(async () => {
   font-size: 32px;
   font-weight: 800;
   color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 .stat-label {
@@ -364,6 +366,11 @@ onMounted(async () => {
   border-radius: var(--radius);
   padding: 16px;
   text-align: center;
+  transition: box-shadow 0.2s ease;
+}
+
+.today-stat:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .today-value {
@@ -394,7 +401,9 @@ onMounted(async () => {
 }
 
 .empty-icon {
-  font-size: 48px;
+  color: var(--text-secondary);
+  opacity: 0.4;
+  margin-bottom: 8px;
 }
 
 @media (max-width: 640px) {

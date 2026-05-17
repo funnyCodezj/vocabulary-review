@@ -12,14 +12,14 @@ const loading = ref(true)
 const submitting = ref(false)
 const done = ref(false)
 const score = ref({ correct: 0, total: 0 })
-const stageFilter = ref('due')
+const stageFilter = ref('new')
 const modeSelected = ref(false)
 const modeCounts = ref({})
 
 const modeOptions = [
-  { value: 'due', label: '待复习', desc: '到期需复习的单词' },
+  { value: 'new', label: '新词', desc: '从未复习的单词' },
+  { value: 'due', label: '待复习', desc: '已学过且到期需复习的单词' },
   { value: 'all', label: '全部单词', desc: '所有单词按顺序出现' },
-  { value: 'new', label: '新词', desc: '从未复习或已重置的单词' },
   { value: 'learning', label: '学习中', desc: '刚答对过 1 次，间隔 1 天' },
   { value: 'reviewing', label: '复习中', desc: '间隔 6~21 天，逐渐巩固' },
   { value: 'mastered', label: '已掌握', desc: '间隔超过 21 天，基本记住' },
@@ -113,6 +113,23 @@ function backToMode() {
   done.value = false
   word.value = null
   score.value = { correct: 0, total: 0 }
+  loadStats()
+}
+
+async function loadStats() {
+  try {
+    const res = await getStats()
+    const s = res.data
+    modeCounts.value = {
+      due: s.due_count,
+      all: s.total_words,
+      new: s.stage_0_new,
+      learning: s.stage_1_learning,
+      reviewing: s.stage_2_3_reviewing,
+      mastered: s.stage_4_5_known,
+      errors: s.errors_count,
+    }
+  } catch {}
 }
 
 function reset() {
@@ -151,19 +168,7 @@ function handleKeydown(e) {
 onMounted(async () => {
   window.addEventListener('keydown', handleKeydown)
   loading.value = false  // wait for mode selection
-  try {
-    const res = await getStats()
-    const s = res.data
-    modeCounts.value = {
-      due: s.due_count,
-      all: s.total_words,
-      new: s.stage_0_new,
-      learning: s.stage_1_learning,
-      reviewing: s.stage_2_3_reviewing,
-      mastered: s.stage_4_5_known,
-      errors: s.errors_count,
-    }
-  } catch {}
+  loadStats()
 })
 
 onUnmounted(() => {
@@ -179,7 +184,7 @@ onUnmounted(() => {
         <span class="score-correct">{{ score.correct }}</span>
         <span class="score-sep">/</span>
         <span class="score-total">{{ score.total }}</span>
-        <span class="score-pct">({{ Math.round(score.correct / score.total * 100) }}%)</span>
+        <span class="score-pct"> ({{ Math.round(score.correct / score.total * 100) }}%)</span>
       </div>
     </div>
 

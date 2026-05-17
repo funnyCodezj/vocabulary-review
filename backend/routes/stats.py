@@ -32,7 +32,7 @@ def get_stats(db: Session = Depends(get_db)):
 
     today = date.today()
     due_count = db.query(Word).outerjoin(UserProgress).filter(
-        (UserProgress.id == None) |
+        (UserProgress.id != None) &
         (UserProgress.next_review_date <= today)
     ).count()
 

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { listWords, clearAllWords } from '../api'
 import WordCard from '../components/WordCard.vue'
 
@@ -12,7 +12,7 @@ const page = ref(1)
 const search = ref('')
 const loading = ref(false)
 const clearing = ref(false)
-const stageFilter = ref(route.query.filter || 'all')
+const stageFilter = ref('all')
 
 const showClearConfirm = ref(false)
 const clearConfirmText = ref('')
@@ -29,9 +29,12 @@ const filterOptions = [
   { value: 'errors', label: '错题' },
 ]
 
+const skeletonItems = Array.from({ length: 8 })
+
 function setFilter(value) {
   stageFilter.value = value
   page.value = 1
+  sessionStorage.setItem('wordListFilter', value)
   router.replace({ query: { filter: value === 'all' ? undefined : value } })
   fetchWords()
 }
@@ -75,7 +78,24 @@ async function handleClearAll() {
   }
 }
 
-onMounted(fetchWords)
+onMounted(() => {
+  if (route.query.filter) {
+    stageFilter.value = route.query.filter
+  } else {
+    const saved = sessionStorage.getItem('wordListFilter')
+    if (saved) {
+      stageFilter.value = saved
+      router.replace({ query: { filter: saved === 'all' ? undefined : saved } })
+    }
+  }
+  fetchWords()
+})
+
+onBeforeRouteLeave((to) => {
+  if (!to.path.startsWith('/words/')) {
+    sessionStorage.removeItem('wordListFilter')
+  }
+})
 
 let searchTimer
 watch(search, () => {
@@ -126,8 +146,17 @@ const totalPages = () => Math.ceil(total.value / pageSize)
       </button>
     </div>
 
-    <div v-if="loading" class="loading">
-      <p class="text-secondary">加载中...</p>
+    <!-- Skeleton loading -->
+    <div v-if="loading" class="word-grid">
+      <div v-for="i in skeletonItems" :key="i" class="skeleton-card">
+        <div class="skeleton-image"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line w-60"></div>
+          <div class="skeleton-line w-40"></div>
+          <div class="skeleton-line w-80"></div>
+          <div class="skeleton-line w-50"></div>
+        </div>
+      </div>
     </div>
 
     <div v-else-if="words.length === 0" class="empty">
@@ -144,7 +173,7 @@ const totalPages = () => Math.ceil(total.value / pageSize)
       />
     </div>
 
-    <div v-if="totalPages() > 1" class="pagination">
+    <div v-if="!loading && totalPages() > 1" class="pagination">
       <button
         class="btn btn-outline"
         :disabled="page <= 1"
@@ -216,6 +245,7 @@ const totalPages = () => Math.ceil(total.value / pageSize)
   font-size: 28px;
   font-weight: 800;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .word-count {
@@ -280,7 +310,7 @@ const totalPages = () => Math.ceil(total.value / pageSize)
   gap: 16px;
 }
 
-.loading, .empty {
+.empty {
   text-align: center;
   padding: 60px 0;
 }
@@ -299,6 +329,48 @@ const totalPages = () => Math.ceil(total.value / pageSize)
   color: var(--text-secondary);
   min-width: 60px;
   text-align: center;
+}
+
+/* Skeleton */
+.skeleton-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.skeleton-image {
+  height: 160px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-body {
+  padding: 16px;
+}
+
+.skeleton-line {
+  height: 14px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.skeleton-line:last-child {
+  margin-bottom: 0;
+}
+
+.w-40 { width: 40%; }
+.w-50 { width: 50%; }
+.w-60 { width: 60%; }
+.w-80 { width: 80%; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Modal */

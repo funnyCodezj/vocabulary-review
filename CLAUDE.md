@@ -4,7 +4,7 @@
 
 - **Backend**: FastAPI + SQLAlchemy + SQLite (`backend/`)
 - **Frontend**: Vue 3 + Vite + Axios (`frontend/`)
-- **Entry Point**: `backend/main.py` starts uvicorn on port 8004
+- **Entry Point**: `backend/main.py` starts uvicorn on port 8001
 - **Packaging**: PyInstaller single-file EXE via `pyinstaller` command
 
 ## Key Conventions

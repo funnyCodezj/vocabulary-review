@@ -34,7 +34,7 @@ def list_words(
         )
     elif stage_filter == "due":
         query = query.filter(
-            (UserProgress.id == None) |
+            (UserProgress.id != None) &
             (UserProgress.next_review_date <= today)
         )
     elif stage_filter == "learning":

@@ -31,7 +31,7 @@
 
 #### 方式一：下载 EXE（推荐）
 
-下载 `VocabularyReview.exe`，双击运行，浏览器自动打开 `http://localhost:8004`。
+下载 `VocabularyReview.exe`，双击运行，浏览器自动打开 `http://localhost:8001`。
 
 #### 方式二：源码运行
 

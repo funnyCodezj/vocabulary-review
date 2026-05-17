@@ -33,9 +33,9 @@ def next_word(
     elif stage_filter == "all":
         pass  # no filter, show all words
     else:
-        # "due" — default SM-2 behaviour
+        # "due" — words that have been reviewed and are due
         query = query.filter(
-            (UserProgress.id == None) |  # noqa: never reviewed
+            (UserProgress.id != None) &
             (UserProgress.next_review_date <= today)
         )
 

@@ -82,4 +82,13 @@ export function clearErrorWord(wordId) {
   return api.post(`/review/errors/${wordId}/clear`)
 }
 
+// Backup
+export function exportBackup() {
+  return api.get('/backup/export')
+}
+
+export function importBackup(data) {
+  return api.post('/backup/import', data, { timeout: 60000 })
+}
+
 export default api

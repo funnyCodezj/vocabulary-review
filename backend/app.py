@@ -3,9 +3,10 @@ import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
 
 from database import engine, Base
-from routes import words, review, stats, media
+from routes import words, review, stats, media, backup
 
 # Path resolution
 # PyInstaller: code in _MEIPASS, user data next to exe
@@ -78,6 +79,7 @@ app.include_router(words.router)
 app.include_router(review.router)
 app.include_router(stats.router)
 app.include_router(media.router)
+app.include_router(backup.router)
 
 
 @app.get("/api/health")
@@ -85,6 +87,18 @@ def health():
     return {"status": "ok", "words": 0}
 
 
-# Serve frontend SPA
+# Serve frontend SPA — catch-all for client-side routing
 if os.path.isdir(FRONTEND_DIST):
-    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    def serve_frontend(full_path: str):
+        if full_path.startswith("api/"):
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
+        file_path = os.path.join(FRONTEND_DIST, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        index_path = os.path.join(FRONTEND_DIST, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path, media_type="text/html")
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
